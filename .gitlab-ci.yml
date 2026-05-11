@@ -1,3 +1,63 @@
+# stages:
+#   - build
+#   - test
+#   - docker
+#   - deploy
+
+# variables:
+#   IMAGE_NAME: $DOCKER_USERNAME/devops-app
+#   DOCKER_HOST: tcp://docker:2375
+#   DOCKER_TLS_CERTDIR: ""
+
+# # -------------------
+# # BUILD
+# # -------------------
+# build:
+#   stage: build
+#   image: node:18
+#   script:
+#     - npm install
+#     - echo "Build complete ...😊"
+
+# # -------------------
+# # TEST
+# # -------------------
+# test:
+#   stage: test
+#   image: node:18
+#   script:
+#     - npm test
+
+# # -------------------
+# # DOCKER BUILD + PUSH
+# # -------------------
+# docker-build:
+#   stage: docker
+#   image: docker:latest
+#   services:
+#     - docker:dind   # ✅ IMPORTANT
+#   script:
+#     - docker info   # test connection
+#     - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+#     - docker build -t $IMAGE_NAME .
+#     - docker push $IMAGE_NAME
+
+# # -------------------
+# # DEPLOY
+# # -------------------
+# deploy:
+#   stage: deploy
+#   image: docker:latest
+#   services:
+#     - docker:dind   # ✅ REQUIRED HERE ALSO
+#   script:
+#     - docker stop devops-container || true
+#     - docker rm devops-container || true
+#     - docker pull $IMAGE_NAME
+#     - docker run -d -p 3000:6000 --name devops-container $IMAGE_NAME
+
+
+
 stages:
   - build
   - test
@@ -15,6 +75,10 @@ variables:
 build:
   stage: build
   image: node:18
+
+  tags:
+    - gitlab_runner1
+
   script:
     - npm install
     - echo "Build complete ...😊"
@@ -25,6 +89,10 @@ build:
 test:
   stage: test
   image: node:18
+
+  tags:
+    - gitlab_runner1
+
   script:
     - npm test
 
@@ -34,11 +102,16 @@ test:
 docker-build:
   stage: docker
   image: docker:latest
+
+  tags:
+    - gitlab_runner1
+
   services:
-    - docker:dind   # ✅ IMPORTANT
+    - docker:dind
+
   script:
-    - docker info   # test connection
-    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    - docker info
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     - docker build -t $IMAGE_NAME .
     - docker push $IMAGE_NAME
 
@@ -48,8 +121,13 @@ docker-build:
 deploy:
   stage: deploy
   image: docker:latest
+
+  tags:
+    - gitlab_runner1
+
   services:
-    - docker:dind   # ✅ REQUIRED HERE ALSO
+    - docker:dind
+
   script:
     - docker stop devops-container || true
     - docker rm devops-container || true
