@@ -132,4 +132,4 @@ deploy:
     - docker stop devops-container || true
     - docker rm devops-container || true
     - docker pull $IMAGE_NAME
-    - docker run -d -p 3000:6000 --name devops-container $IMAGE_NAME
+    - docker run -d -p 3000:6000 --name devops-container $IMAGE_NAME 
