@@ -66,8 +66,6 @@ stages:
 
 variables:
   IMAGE_NAME: $DOCKER_USERNAME/devops-app
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
 
 # -------------------
 # BUILD
@@ -106,9 +104,6 @@ docker-build:
   tags:
     - ci
 
-  services:
-    - docker:dind
-
   script:
     - docker info
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
@@ -125,11 +120,8 @@ deploy:
   tags:
     - ci
 
-  services:
-    - docker:dind
-
   script:
     - docker stop devops-container || true
     - docker rm devops-container || true
     - docker pull $IMAGE_NAME
-    - docker run -d -p 3000:6000 --name devops-container $IMAGE_NAME
+    - docker run -d -p 8000:6000 --name devops-container $IMAGE_NAME
