@@ -58,6 +58,78 @@
 
 
 
+# stages:
+#   - build
+#   - test
+#   - docker
+#   - deploy
+
+# variables:
+#   IMAGE_NAME: $DOCKER_USERNAME/devops-app
+
+# # -------------------
+# # BUILD
+# # -------------------
+# build:
+#   stage: build
+#   image: node:18
+
+#   tags:
+#     - ci
+
+#   script:
+#     - npm install
+#     - echo "Build complete ...😊"
+
+# # -------------------
+# # TEST
+# # -------------------
+# test:
+#   stage: test
+#   image: node:18
+
+#   tags:
+#     - ci
+
+#   script:
+#     - npm test
+
+# # -------------------
+# # DOCKER BUILD + PUSH
+# # -------------------
+# docker-build:
+#   stage: docker
+#   image: docker:latest
+
+#   tags:
+#     - ci
+
+#   script:
+#     - docker info
+#     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+#     - docker build -t $IMAGE_NAME .
+#     - docker push $IMAGE_NAME
+
+# # -------------------
+# # DEPLOY
+# # -------------------
+# deploy:
+#   stage: deploy
+#   image: docker:latest
+
+#   tags:
+#     - ci
+
+#   script:
+#     - docker stop devops-container || true
+#     - docker rm devops-container || true
+#     - docker pull $IMAGE_NAME
+#     - docker run -d -p 8000:6000 --name devops-container $IMAGE_NAME
+
+
+
+
+
 stages:
   - build
   - test
@@ -65,28 +137,26 @@ stages:
   - deploy
 
 variables:
-  IMAGE_NAME: $DOCKER_USERNAME/devops-app
+  IMAGE_NAME: "$env:DOCKER_USERNAME/devops-app"
 
 # -------------------
 # BUILD
 # -------------------
 build:
   stage: build
-  image: node:18
 
   tags:
     - ci
 
   script:
     - npm install
-    - echo "Build complete ...😊"
+    - echo "Build complete"
 
 # -------------------
 # TEST
 # -------------------
 test:
   stage: test
-  image: node:18
 
   tags:
     - ci
@@ -99,29 +169,27 @@ test:
 # -------------------
 docker-build:
   stage: docker
-  image: docker:latest
 
   tags:
     - ci
 
   script:
     - docker info
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - docker build -t $IMAGE_NAME .
-    - docker push $IMAGE_NAME
+    - echo $env:DOCKER_PASSWORD | docker login -u $env:DOCKER_USERNAME --password-stdin
+    - docker build -t "$env:DOCKER_USERNAME/devops-app" .
+    - docker push "$env:DOCKER_USERNAME/devops-app"
 
 # -------------------
 # DEPLOY
 # -------------------
 deploy:
   stage: deploy
-  image: docker:latest
 
   tags:
     - ci
 
   script:
-    - docker stop devops-container || true
-    - docker rm devops-container || true
-    - docker pull $IMAGE_NAME
-    - docker run -d -p 8000:6000 --name devops-container $IMAGE_NAME
+    - docker stop devops-container
+    - docker rm devops-container
+    - docker pull "$env:DOCKER_USERNAME/devops-app"
+    - docker run -d -p 8000:6000 --name devops-container "$env:DOCKER_USERNAME/devops-app"
