@@ -189,7 +189,7 @@ deploy:
     - ci
 
   script:
-    - docker stop devops-container 2>$null
-    - docker rm devops-container 2>$null
+    - docker stop devops-container; if (!$?) { Write-Host "Container not running" }
+    - docker rm devops-container; if (!$?) { Write-Host "Container not found" }
     - docker pull "$env:DOCKER_USERNAME/devops-app"
     - docker run -d -p 8000:6000 --name devops-container "$env:DOCKER_USERNAME/devops-app"
